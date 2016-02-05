@@ -8,7 +8,7 @@
 
 import UIKit
 
-class MemeEditorViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBOutlet weak var topTextField: UITextField!
     @IBOutlet weak var bottomTextField: UITextField!
@@ -20,6 +20,7 @@ class MemeEditorViewController: UIViewController, UITextFieldDelegate, UIImagePi
     @IBOutlet weak var shareButton: UIBarButtonItem!
     @IBOutlet weak var cancelButton: UIBarButtonItem!
     
+    let textfieldDelegate = TextFieldDelegate()
     var meme: Meme!
     
     // MARK: - Viewcontroller lifecycle
@@ -54,22 +55,7 @@ class MemeEditorViewController: UIViewController, UITextFieldDelegate, UIImagePi
         
         dismissViewControllerAnimated(true, completion: nil)
     }
-    
-    // MARK: - UITextField delegate methods
-    
-    func textFieldDidBeginEditing(textField: UITextField) {
-        guard let text = textField.text else { return }
-        
-        if text == "TOP" || text == "BOTTOM" {
-            textField.text = ""
-        }
-    }
-    
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        
-        return true
-    }
+
     
     // MARK: - IBAction methods
     
@@ -87,7 +73,7 @@ class MemeEditorViewController: UIViewController, UITextFieldDelegate, UIImagePi
         let activityViewController = UIActivityViewController(activityItems: [memeImage], applicationActivities: nil)
         activityViewController.completionWithItemsHandler = {
             (activityType: String?, completed: Bool, returnedItems: [AnyObject]?, activityError: NSError?) -> Void in
-            self.save(memeImage)
+            if completed { self.save(memeImage) }
             self.dismissViewControllerAnimated(true, completion: nil)
         }
         
@@ -103,25 +89,25 @@ class MemeEditorViewController: UIViewController, UITextFieldDelegate, UIImagePi
     
     // Set properties to default such as text/image
     func reset() {
+        setupTextField(topTextField, text: "TOP")
+        setupTextField(bottomTextField, text: "BOTTOM")
+        
+        imageView.image = nil
+        shareButton.enabled = false
+    }
+    
+    func setupTextField(textfield: UITextField, text: String) {
         let memeTextAttributes = [
             NSStrokeColorAttributeName: UIColor.blackColor(),
             NSForegroundColorAttributeName: UIColor.whiteColor(),
             NSFontAttributeName: UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
             NSStrokeWidthAttributeName: -3.0
         ]
-
-        topTextField.text = "TOP"
-        topTextField.defaultTextAttributes = memeTextAttributes
-        topTextField.textAlignment = .Center
-        topTextField.delegate = self
-
-        bottomTextField.text = "BOTTOM"
-        bottomTextField.defaultTextAttributes = memeTextAttributes
-        bottomTextField.textAlignment = .Center
-        bottomTextField.delegate = self
         
-        imageView.image = nil
-        shareButton.enabled = false
+        textfield.text = text
+        textfield.defaultTextAttributes = memeTextAttributes
+        textfield.textAlignment = .Center
+        textfield.delegate = textfieldDelegate
     }
     
     func pickImageFromSource(sourceType: UIImagePickerControllerSourceType) {

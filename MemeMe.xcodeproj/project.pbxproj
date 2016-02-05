@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3725C5961C654A82009CF29B /* TextFieldDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3725C5951C654A82009CF29B /* TextFieldDelegate.swift */; };
 		37DF27281C63BF1E00F0CE72 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DF27271C63BF1E00F0CE72 /* AppDelegate.swift */; };
 		37DF272A1C63BF1E00F0CE72 /* MemeEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DF27291C63BF1E00F0CE72 /* MemeEditorViewController.swift */; };
 		37DF272D1C63BF1E00F0CE72 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 37DF272B1C63BF1E00F0CE72 /* Main.storyboard */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3725C5951C654A82009CF29B /* TextFieldDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextFieldDelegate.swift; sourceTree = "<group>"; };
 		37DF27241C63BF1E00F0CE72 /* MemeMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemeMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37DF27271C63BF1E00F0CE72 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		37DF27291C63BF1E00F0CE72 /* MemeEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemeEditorViewController.swift; sourceTree = "<group>"; };
@@ -39,6 +41,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3725C5941C654A76009CF29B /* Delegates */ = {
+			isa = PBXGroup;
+			children = (
+				3725C5951C654A82009CF29B /* TextFieldDelegate.swift */,
+			);
+			name = Delegates;
+			sourceTree = "<group>";
+		};
 		37DF271B1C63BF1E00F0CE72 = {
 			isa = PBXGroup;
 			children = (
@@ -59,6 +69,7 @@
 		37DF27261C63BF1E00F0CE72 /* MemeMe */ = {
 			isa = PBXGroup;
 			children = (
+				3725C5941C654A76009CF29B /* Delegates */,
 				37DF274D1C65121700F0CE72 /* Models */,
 				37DF274B1C65034800F0CE72 /* Controllers */,
 				37DF274C1C65034E00F0CE72 /* Storyboards */,
@@ -177,6 +188,7 @@
 				37DF274F1C65122A00F0CE72 /* Meme.swift in Sources */,
 				37DF272A1C63BF1E00F0CE72 /* MemeEditorViewController.swift in Sources */,
 				37DF27511C65137400F0CE72 /* README.md in Sources */,
+				3725C5961C654A82009CF29B /* TextFieldDelegate.swift in Sources */,
 				37DF27281C63BF1E00F0CE72 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
