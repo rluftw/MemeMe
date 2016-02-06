@@ -21,6 +21,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     @IBOutlet weak var cancelButton: UIBarButtonItem!
     
     let textfieldDelegate = TextFieldDelegate()
+    
     var meme: Meme!
     
     // MARK: - Viewcontroller lifecycle
@@ -30,6 +31,19 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         
         reset()
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
+        
+        // If there was a meme passed in, layout the fields
+        if let _ = meme {
+            shareButton.enabled = true
+            
+            let topText = meme.topText != nil ? meme.topText!: ""
+            let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
+            
+            setupTextField(topTextField, text: topText)
+            setupTextField(bottomTextField, text: bottomText)
+            
+            imageView.image = meme.originalImage
+        }
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -74,14 +88,19 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         activityViewController.completionWithItemsHandler = {
             (activityType: String?, completed: Bool, returnedItems: [AnyObject]?, activityError: NSError?) -> Void in
             if completed { self.save(memeImage) }
+            
+            // dismiss the activity controller
             self.dismissViewControllerAnimated(true, completion: nil)
+            
+            // pop to the root viewcontroller
+            self.navigationController?.popToRootViewControllerAnimated(false)
         }
         
         presentViewController(activityViewController, animated: true, completion: nil)
     }
     
     @IBAction func cancel(sender: AnyObject) {
-        reset()
+        dismissViewControllerAnimated(true, completion: nil)
     }
     
     // MARK: - Helper methods
@@ -164,7 +183,10 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     func save(memeImage: UIImage) {
-        meme = Meme(topText: topTextField.text, bottomText: bottomTextField.text, originalImage: imageView.image!, memeImage: memeImage)
+        let meme = Meme(topText: topTextField.text, bottomText: bottomTextField.text, originalImage: imageView.image!, memeImage: memeImage)
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        
+        appDelegate.memes.append(meme)
     }
 }
 
