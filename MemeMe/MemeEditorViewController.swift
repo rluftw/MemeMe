@@ -87,13 +87,15 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         let activityViewController = UIActivityViewController(activityItems: [memeImage], applicationActivities: nil)
         activityViewController.completionWithItemsHandler = {
             (activityType: String?, completed: Bool, returnedItems: [AnyObject]?, activityError: NSError?) -> Void in
-            if completed { self.save(memeImage) }
-            
-            // dismiss the activity controller
-            self.dismissViewControllerAnimated(true, completion: nil)
-            
-            // pop to the root viewcontroller
-            self.navigationController?.popToRootViewControllerAnimated(false)
+            if completed {
+                self.save(memeImage)
+                
+                // dismiss the activity controller
+                self.dismissViewControllerAnimated(true, completion: nil)
+                
+                // pop to the root viewcontroller
+                self.navigationController?.popToRootViewControllerAnimated(false)
+            }
         }
         
         presentViewController(activityViewController, animated: true, completion: nil)
