@@ -77,14 +77,12 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     // MARK: Navigation methods
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "ShowMemeDetailFromCollection" {
-            print("ShowMemeDetailFromCollection")
-            
+        if segue.identifier == "ShowMemeDetailCollection" {            
             let detailVC = segue.destinationViewController as! MemeDetailViewController            
             let sender = sender as! MemeCollectionCellView
             
             let indexPath = collectionView?.indexPathForCell(sender)
-            detailVC.meme = memes[indexPath!.row]
+            detailVC.meme = memes[indexPath!.row]            
         }
     }
 }

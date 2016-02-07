@@ -16,6 +16,10 @@ class MemeDetailViewController: UIViewController {
 
     // MARK: Viewcontroller Lifecycle
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
