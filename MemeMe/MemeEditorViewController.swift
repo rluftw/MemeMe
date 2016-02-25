@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -24,12 +25,17 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     var meme: Meme!
     
+    // MARK: - CoreData
+    
+    var sharedContext: NSManagedObjectContext!
+    
     // MARK: - Viewcontroller lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         reset()
+        sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
         
         // If there was a meme passed in, layout the fields
@@ -42,7 +48,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
             setupTextField(topTextField, text: topText)
             setupTextField(bottomTextField, text: bottomText)
             
-            imageView.image = meme.originalImage
+            imageView.image = UIImage(data: meme.originalImage)
         }
     }
 
@@ -185,10 +191,14 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     func save(memeImage: UIImage) {
-        let meme = Meme(topText: topTextField.text, bottomText: bottomTextField.text, originalImage: imageView.image!, memeImage: memeImage)
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let originalImageData = UIImageJPEGRepresentation(imageView.image!, 1)!
+        let memeImageData = UIImageJPEGRepresentation(memeImage, 1)!
         
-        appDelegate.memes.append(meme)
+        // Create the meme and insert it to core data
+        let _ = Meme(topText: topTextField.text, bottomText: bottomTextField.text, originalImage: originalImageData, memeImage: memeImageData, context: sharedContext)
+    
+        // Save the commit
+        CoreDataStackManager.sharedInstance().saveContext()
     }
 }
 

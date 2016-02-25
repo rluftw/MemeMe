@@ -7,21 +7,35 @@
 //
 
 import UIKit
+import CoreData
 
 class MemeTableViewController: UITableViewController {
 
-    var memes: [Meme] {
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        return appDelegate.memes
-    }
+    var memes: [Meme]!
+    var sharedContext: NSManagedObjectContext!
     
     // MARK: - Viewcontroller Lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Retrieve the context
+        sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
+        
+        // Fetch the memes everything this controller is displayed
+        memes = fetchAllMemes()
+    }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
         tabBarController?.tabBar.hidden = false
         
+        // Fetch the memes everything this controller is displayed
+        memes = fetchAllMemes()
+        
+        
+        // Reload the table
         tableView.reloadData()
     }
 
@@ -33,12 +47,14 @@ class MemeTableViewController: UITableViewController {
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("CustomMemeCell", forIndexPath: indexPath) as! MemeTableViewCell
+        
         let meme = memes[indexPath.row]
+        
         let topText = meme.topText != nil ? meme.topText!: ""
         let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
         
         cell.setUpMemeLabels(topText, bottomString: bottomText)
-        cell.customImageView.image = meme.originalImage
+        cell.customImageView.image = UIImage(data: meme.originalImage)
         cell.descriptionLabel.text = "\(topText)...\(bottomText)"
         
         return cell
@@ -46,8 +62,14 @@ class MemeTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
-            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-            appDelegate.memes.removeAtIndex(indexPath.row)
+            // Remove from the model
+            memes.removeAtIndex(indexPath.row)
+            
+            // Remove from core data
+            sharedContext.deleteObject(memes[indexPath.row])
+            
+            // Save the commit
+            CoreDataStackManager.sharedInstance().saveContext()
             
             tableView.reloadData()
         }
@@ -67,6 +89,17 @@ class MemeTableViewController: UITableViewController {
             
             let indexPath = tableView?.indexPathForCell(sender)
             detailVC.meme = memes[indexPath!.row]
+        }
+    }
+    
+    // MARK: - CoreData
+    func fetchAllMemes() -> [Meme] {
+        let fetch = NSFetchRequest(entityName: "Meme")
+        
+        do {
+            return try self.sharedContext.executeFetchRequest(fetch) as! [Meme]
+        } catch {
+            return [Meme]()
         }
     }
 }

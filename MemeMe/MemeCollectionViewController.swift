@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 private let reuseIdentifier = "CustomMemeCell"
 
@@ -14,10 +15,8 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
 
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
-    var memes: [Meme] {
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        return appDelegate.memes
-    }
+    var memes: [Meme]!
+    var sharedContext: NSManagedObjectContext!
     
     let space: CGFloat = 3.0
     
@@ -28,6 +27,9 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         
         flowLayout.minimumLineSpacing = space
         flowLayout.minimumInteritemSpacing = space
+        
+        sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
+        memes = fetchAllMemes()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -36,6 +38,10 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         // Tab bar hidden when previewing image
         tabBarController?.tabBar.hidden = false
         
+        // Reload from core data
+        memes = fetchAllMemes()
+        
+        // Refresh collection view
         collectionView?.reloadData()
     }
     
@@ -69,7 +75,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         
         // Configure the cell
         cell.setUpMemeLabels(topText, bottomString: bottomText)
-        cell.imageView.image = meme.originalImage
+        cell.imageView.image = UIImage(data: meme.originalImage)
     
         return cell
     }
@@ -83,6 +89,17 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
             
             let indexPath = collectionView?.indexPathForCell(sender)
             detailVC.meme = memes[indexPath!.row]            
+        }
+    }
+    
+    // MARK: - CoreData
+    func fetchAllMemes() -> [Meme] {
+        let fetch = NSFetchRequest(entityName: "Meme")
+        
+        do {
+            return try self.sharedContext.executeFetchRequest(fetch) as! [Meme]
+        } catch {
+            return [Meme]()
         }
     }
 }

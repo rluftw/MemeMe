@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		3725C5961C654A82009CF29B /* TextFieldDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3725C5951C654A82009CF29B /* TextFieldDelegate.swift */; };
+		374A4F021C7E79B7003E2529 /* CoreDataStackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374A4F011C7E79B7003E2529 /* CoreDataStackManager.swift */; };
+		374A4F061C7E7D22003E2529 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 374A4F041C7E7D22003E2529 /* Model.xcdatamodeld */; };
 		37ADA16A1C66728A0011E0CA /* MemeCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37ADA1691C66728A0011E0CA /* MemeCollectionViewController.swift */; };
 		37ADA16F1C668D020011E0CA /* MemeDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37ADA16E1C668D020011E0CA /* MemeDetailViewController.swift */; };
 		37DF27281C63BF1E00F0CE72 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DF27271C63BF1E00F0CE72 /* AppDelegate.swift */; };
@@ -24,6 +26,8 @@
 
 /* Begin PBXFileReference section */
 		3725C5951C654A82009CF29B /* TextFieldDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextFieldDelegate.swift; sourceTree = "<group>"; };
+		374A4F011C7E79B7003E2529 /* CoreDataStackManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CoreDataStackManager.swift; path = "../../ios-persistence-2.0/CoreDataMasterDetail/CoreDataMasterDetail/CoreDataStackManager.swift"; sourceTree = "<group>"; };
+		374A4F051C7E7D22003E2529 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		37ADA1691C66728A0011E0CA /* MemeCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MemeCollectionViewController.swift; sourceTree = "<group>"; };
 		37ADA16E1C668D020011E0CA /* MemeDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MemeDetailViewController.swift; sourceTree = "<group>"; };
 		37DF27241C63BF1E00F0CE72 /* MemeMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemeMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -59,6 +63,14 @@
 			name = Delegates;
 			sourceTree = "<group>";
 		};
+		374A4F031C7E7D11003E2529 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				374A4F041C7E7D22003E2529 /* Model.xcdatamodeld */,
+			);
+			name = CoreData;
+			sourceTree = "<group>";
+		};
 		37DF271B1C63BF1E00F0CE72 = {
 			isa = PBXGroup;
 			children = (
@@ -79,6 +91,7 @@
 		37DF27261C63BF1E00F0CE72 /* MemeMe */ = {
 			isa = PBXGroup;
 			children = (
+				374A4F031C7E7D11003E2529 /* CoreData */,
 				37EBCB061C65869C00C44315 /* Views */,
 				3725C5941C654A76009CF29B /* Delegates */,
 				37DF274D1C65121700F0CE72 /* Models */,
@@ -122,6 +135,7 @@
 		37DF274D1C65121700F0CE72 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				374A4F011C7E79B7003E2529 /* CoreDataStackManager.swift */,
 				37DF274E1C65122A00F0CE72 /* Meme.swift */,
 			);
 			name = Models;
@@ -210,6 +224,7 @@
 			files = (
 				37EBCB081C6586BD00C44315 /* MemeCollectionCellView.swift in Sources */,
 				37F39ECF1C6658670018C5F9 /* MemeTableViewCell.swift in Sources */,
+				374A4F021C7E79B7003E2529 /* CoreDataStackManager.swift in Sources */,
 				37F39ECD1C6657710018C5F9 /* MemeTableViewController.swift in Sources */,
 				37DF274F1C65122A00F0CE72 /* Meme.swift in Sources */,
 				37ADA16A1C66728A0011E0CA /* MemeCollectionViewController.swift in Sources */,
@@ -218,6 +233,7 @@
 				3725C5961C654A82009CF29B /* TextFieldDelegate.swift in Sources */,
 				37DF27281C63BF1E00F0CE72 /* AppDelegate.swift in Sources */,
 				37ADA16F1C668D020011E0CA /* MemeDetailViewController.swift in Sources */,
+				374A4F061C7E7D22003E2529 /* Model.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,6 +384,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		374A4F041C7E7D22003E2529 /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				374A4F051C7E7D22003E2529 /* Model.xcdatamodel */,
+			);
+			currentVersion = 374A4F051C7E7D22003E2529 /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 37DF271C1C63BF1E00F0CE72 /* Project object */;
 }

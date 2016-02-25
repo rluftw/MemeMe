@@ -4,4 +4,4 @@ A meme creator! Make memes with your favorite images, and edit them whenever you
 
 Cool! :)
 
-** Note ** Sadly, the app currently does not use persistent storage.
+** Update ** The latest update allows for persistent storage using Core data! woo!
