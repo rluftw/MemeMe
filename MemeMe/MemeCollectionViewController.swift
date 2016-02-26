@@ -12,7 +12,7 @@ import CoreData
 private let reuseIdentifier = "CustomMemeCell"
 
 class MemeCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
-
+    
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
     var memes: [Meme]!
@@ -66,7 +66,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return memes.count
     }
-
+    
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! MemeCollectionCellView
         let meme = memes[indexPath.row]
@@ -76,19 +76,19 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         // Configure the cell
         cell.setUpMemeLabels(topText, bottomString: bottomText)
         cell.imageView.image = UIImage(data: meme.originalImage)
-    
+        
         return cell
     }
-
+    
     // MARK: Navigation methods
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "ShowMemeDetailCollection" {            
-            let detailVC = segue.destinationViewController as! MemeDetailViewController            
+        if segue.identifier == "ShowMemeDetailCollection" {
+            let detailVC = segue.destinationViewController as! MemeDetailViewController
             let sender = sender as! MemeCollectionCellView
             
             let indexPath = collectionView?.indexPathForCell(sender)
-            detailVC.meme = memes[indexPath!.row]            
+            detailVC.meme = memes[indexPath!.row]
         }
     }
     

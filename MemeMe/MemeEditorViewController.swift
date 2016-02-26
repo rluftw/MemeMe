@@ -9,6 +9,10 @@
 import UIKit
 import CoreData
 
+protocol MemeEditorDelegate: class {
+    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData)
+}
+
 class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBOutlet weak var topTextField: UITextField!
@@ -24,18 +28,13 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     let textfieldDelegate = TextFieldDelegate()
     
     var meme: Meme!
-    
-    // MARK: - CoreData
-    
-    var sharedContext: NSManagedObjectContext!
+    weak var delegate: MemeEditorDelegate?
     
     // MARK: - Viewcontroller lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         reset()
-        sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
         
         // If there was a meme passed in, layout the fields
@@ -94,6 +93,8 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         activityViewController.completionWithItemsHandler = {
             (activityType: String?, completed: Bool, returnedItems: [AnyObject]?, activityError: NSError?) -> Void in
             if completed {
+                print("Image getting saved")
+                
                 self.save(memeImage)
                 
                 // dismiss the activity controller
@@ -194,11 +195,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         let originalImageData = UIImageJPEGRepresentation(imageView.image!, 1)!
         let memeImageData = UIImageJPEGRepresentation(memeImage, 1)!
         
-        // Create the meme and insert it to core data
-        let _ = Meme(topText: topTextField.text, bottomText: bottomTextField.text, originalImage: originalImageData, memeImage: memeImageData, context: sharedContext)
-    
-        // Save the commit
-        CoreDataStackManager.sharedInstance().saveContext()
+        delegate?.memeDidGetCreated(topTextField.text, bottomText: bottomTextField.text, originalImage: originalImageData, memeImage: memeImageData)
     }
 }
 

@@ -9,10 +9,18 @@
 import UIKit
 import CoreData
 
-class MemeTableViewController: UITableViewController {
+class MemeTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, MemeEditorDelegate {
 
-    var memes: [Meme]!
+    // We're going to be replacing this array with fetchedResultsController
+    // var memes: [Meme]!
+    
     var sharedContext: NSManagedObjectContext!
+    
+    lazy var fetchedResultsController: NSFetchedResultsController = {
+        let request = NSFetchRequest(entityName: "Meme")
+        request.sortDescriptors = []
+        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+    }()
     
     // MARK: - Viewcontroller Lifecycle
     
@@ -21,34 +29,32 @@ class MemeTableViewController: UITableViewController {
         
         // Retrieve the context
         sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
+        fetchedResultsController.delegate = self
         
-        // Fetch the memes everything this controller is displayed
-        memes = fetchAllMemes()
+        // Fetch all data from core data
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {}
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
         tabBarController?.tabBar.hidden = false
-        
-        // Fetch the memes everything this controller is displayed
-        memes = fetchAllMemes()
-        
-        
-        // Reload the table
-        tableView.reloadData()
     }
 
     // MARK: - Table view data source
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return memes.count
+        let memes = fetchedResultsController.sections![section]
+    
+        return memes.numberOfObjects
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("CustomMemeCell", forIndexPath: indexPath) as! MemeTableViewCell
         
-        let meme = memes[indexPath.row]
+        let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
         
         let topText = meme.topText != nil ? meme.topText!: ""
         let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
@@ -62,16 +68,15 @@ class MemeTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
-            // Remove from the model
-            memes.removeAtIndex(indexPath.row)
+            
+            // Fetch the data at that indexPath
+            let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
             
             // Remove from core data
-            sharedContext.deleteObject(memes[indexPath.row])
+            sharedContext.deleteObject(meme)
             
             // Save the commit
             CoreDataStackManager.sharedInstance().saveContext()
-            
-            tableView.reloadData()
         }
     }
     
@@ -87,19 +92,48 @@ class MemeTableViewController: UITableViewController {
             let detailVC = segue.destinationViewController as! MemeDetailViewController
             let sender = sender as! MemeTableViewCell
             
-            let indexPath = tableView?.indexPathForCell(sender)
-            detailVC.meme = memes[indexPath!.row]
+            let indexPath = tableView!.indexPathForCell(sender)!
+            detailVC.meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+        } else if segue.identifier == "ShowMemeEditor" {
+            let editorVC = (segue.destinationViewController as! UINavigationController).topViewController as! MemeEditorViewController
+            
+            editorVC.delegate = self
         }
     }
     
-    // MARK: - CoreData
-    func fetchAllMemes() -> [Meme] {
-        let fetch = NSFetchRequest(entityName: "Meme")
-        
-        do {
-            return try self.sharedContext.executeFetchRequest(fetch) as! [Meme]
-        } catch {
-            return [Meme]()
+    // MARK: - FetchedResultsControllerDelegate methods
+    
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+        tableView.beginUpdates()
+    }
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        switch type {
+        case .Delete: tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
+        case .Insert: tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
+        default: break
         }
+    }
+    
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        tableView.endUpdates()
+    }
+    
+    // MARK: - MemeEditorDelegate
+    
+    
+    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
+        
+        let dictionary: [String: AnyObject] = [
+            Meme.Keys.TopText: topText ?? "",
+            Meme.Keys.BottomText: bottomText ?? "",
+            Meme.Keys.OriginalImage: originalImage,
+            Meme.Keys.MemeImage: memeImage
+        ]
+        
+        let _ = Meme(dictionary: dictionary, context: sharedContext)
+        
+        // Save commits onto core data
+        CoreDataStackManager.sharedInstance().saveContext()
     }
 }
