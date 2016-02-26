@@ -7,12 +7,17 @@
 //
 
 import UIKit
+import CoreData
 
-class MemeDetailViewController: UIViewController {
+class MemeDetailViewController: UIViewController, MemeEditorDelegate {
     
     @IBOutlet weak var imageView: UIImageView!
     
     var meme: Meme!
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext
+    }
 
     // MARK: Viewcontroller Lifecycle
     
@@ -38,8 +43,24 @@ class MemeDetailViewController: UIViewController {
         if segue.identifier == "EditMeme" {
             let navController = segue.destinationViewController as! UINavigationController
             let memeEditor = navController.viewControllers.first as! MemeEditorViewController
-         
+            memeEditor.delegate = self
+            
             memeEditor.meme = meme
         }
+    }
+    
+    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
+        
+        let dictionary: [String: AnyObject] = [
+            Meme.Keys.TopText: topText ?? "",
+            Meme.Keys.BottomText: bottomText ?? "",
+            Meme.Keys.OriginalImage: originalImage,
+            Meme.Keys.MemeImage: memeImage
+        ]
+        
+        let _ = Meme(dictionary: dictionary, context: sharedContext)
+        
+        // Save commits onto core data
+        CoreDataStackManager.sharedInstance().saveContext()
     }
 }
