@@ -11,11 +11,23 @@ import CoreData
 
 private let reuseIdentifier = "CustomMemeCell"
 
-class MemeCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
+class MemeCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, NSFetchedResultsControllerDelegate, MemeEditorDelegate  {
     
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
-    var memes: [Meme]!
+    var blockOperations: [NSBlockOperation]!
+    
+    // Lazy fetchedResultsController
+    // Stores data
+    // Notifies controller when there's changes
+    
+    lazy var fetchedResultsController: NSFetchedResultsController = {
+        let request = NSFetchRequest(entityName: "Meme")
+        request.sortDescriptors = []
+        
+        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+    }()
+    
     var sharedContext: NSManagedObjectContext!
     
     let space: CGFloat = 3.0
@@ -29,7 +41,12 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         flowLayout.minimumInteritemSpacing = space
         
         sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
-        memes = fetchAllMemes()
+        
+        fetchedResultsController.delegate = self
+        
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {}
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -37,9 +54,6 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         
         // Tab bar hidden when previewing image
         tabBarController?.tabBar.hidden = false
-        
-        // Reload from core data
-        memes = fetchAllMemes()
         
         // Refresh collection view
         collectionView?.reloadData()
@@ -64,12 +78,13 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     // MARK: UICollectionViewDataSource methods
     
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return memes.count
+        let sectionInfo = fetchedResultsController.sections![section]
+        return sectionInfo.numberOfObjects
     }
     
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! MemeCollectionCellView
-        let meme = memes[indexPath.row]
+        let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
         let topText = meme.topText != nil ? meme.topText!: ""
         let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
         
@@ -87,19 +102,56 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
             let detailVC = segue.destinationViewController as! MemeDetailViewController
             let sender = sender as! MemeCollectionCellView
             
-            let indexPath = collectionView?.indexPathForCell(sender)
-            detailVC.meme = memes[indexPath!.row]
+            let indexPath = collectionView!.indexPathForCell(sender)!
+            detailVC.meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+        } else if segue.identifier == "ShowMemeEditor" {
+            let editorVC = (segue.destinationViewController as! UINavigationController).topViewController as! MemeEditorViewController
+            
+            editorVC.delegate = self
         }
     }
     
-    // MARK: - CoreData
-    func fetchAllMemes() -> [Meme] {
-        let fetch = NSFetchRequest(entityName: "Meme")
+    // MARK: - MemeEditorDelegate methods
+    
+    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
         
-        do {
-            return try self.sharedContext.executeFetchRequest(fetch) as! [Meme]
-        } catch {
-            return [Meme]()
+        let dictionary: [String: AnyObject] = [
+            Meme.Keys.TopText: topText ?? "",
+            Meme.Keys.BottomText: bottomText ?? "",
+            Meme.Keys.OriginalImage: originalImage,
+            Meme.Keys.MemeImage: memeImage
+        ]
+        
+        let _ = Meme(dictionary: dictionary, context: sharedContext)
+        
+        // Save commits onto core data
+        CoreDataStackManager.sharedInstance().saveContext()
+    }
+    
+    // MARK: - NSFetchedResultsControllerDelegate methods
+    
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+        blockOperations = [NSBlockOperation]()
+    }
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        switch type {
+        case .Delete: blockOperations.append(NSBlockOperation(block: { () -> Void in
+            (self.collectionView?.deleteItemsAtIndexPaths([indexPath!]))!
+        }))
+        case .Insert: blockOperations.append(NSBlockOperation(block: { () -> Void in
+            print("Inserting")
+            self.collectionView?.insertItemsAtIndexPaths([newIndexPath!])
+        }))
+        default: break
         }
+    }
+    
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        for operation in blockOperations {
+            operation.start()
+        }
+        
+        blockOperations = nil
     }
 }
