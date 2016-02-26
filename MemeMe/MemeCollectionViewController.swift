@@ -140,7 +140,6 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
             (self.collectionView?.deleteItemsAtIndexPaths([indexPath!]))!
         }))
         case .Insert: blockOperations.append(NSBlockOperation(block: { () -> Void in
-            print("Inserting")
             self.collectionView?.insertItemsAtIndexPaths([newIndexPath!])
         }))
         default: break
@@ -148,10 +147,13 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     }
     
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        for operation in blockOperations {
-            operation.start()
-        }
-        
-        blockOperations = nil
+        collectionView?.performBatchUpdates({ () -> Void in
+            for operation in self.blockOperations {
+                operation.start()
+            }
+            }, completion: { (completed) -> Void in
+                self.blockOperations = nil
+        })
+
     }
 }
