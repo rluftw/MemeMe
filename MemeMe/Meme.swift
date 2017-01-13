@@ -14,8 +14,8 @@ import CoreData
 class Meme: NSManagedObject {
     @NSManaged var topText: String?
     @NSManaged var bottomText: String?
-    @NSManaged var originalImage: NSData
-    @NSManaged var memeImage: NSData
+    @NSManaged var originalImage: Data
+    @NSManaged var memeImage: Data
     
     struct Keys {
         static let TopText = "topText"
@@ -24,13 +24,13 @@ class Meme: NSManagedObject {
         static let MemeImage = "memeImage"
     }
     
-    override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
-        super.init(entity: entity, insertIntoManagedObjectContext: context)
+    override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: context)
     }
     
-    init(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData, context: NSManagedObjectContext) {
-        let entity = NSEntityDescription.entityForName("Meme", inManagedObjectContext: context)!
-        super.init(entity: entity, insertIntoManagedObjectContext: context)
+    init(topText: String?, bottomText: String?, originalImage: Data, memeImage: Data, context: NSManagedObjectContext) {
+        let entity = NSEntityDescription.entity(forEntityName: "Meme", in: context)!
+        super.init(entity: entity, insertInto: context)
         
         self.topText = topText
         self.bottomText = bottomText
@@ -39,13 +39,13 @@ class Meme: NSManagedObject {
     }
     
     init(dictionary: [String: AnyObject], context: NSManagedObjectContext) {
-        let entity = NSEntityDescription.entityForName("Meme", inManagedObjectContext: context)!
-        super.init(entity: entity, insertIntoManagedObjectContext: context)
+        let entity = NSEntityDescription.entity(forEntityName: "Meme", in: context)!
+        super.init(entity: entity, insertInto: context)
         
         self.topText = dictionary[Keys.TopText] as? String
         self.bottomText = dictionary[Keys.BottomText] as? String
-        self.originalImage = dictionary[Keys.OriginalImage] as! NSData
-        self.memeImage = dictionary[Keys.MemeImage] as! NSData
+        self.originalImage = dictionary[Keys.OriginalImage] as! Data
+        self.memeImage = dictionary[Keys.MemeImage] as! Data
     }
     
 }

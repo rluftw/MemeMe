@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 class TextFieldDelegate: NSObject, UITextFieldDelegate {
-    func textFieldDidBeginEditing(textField: UITextField) {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
         guard let text = textField.text else { return }
         
         if text == "TOP" || text == "BOTTOM" {
@@ -18,7 +18,7 @@ class TextFieldDelegate: NSObject, UITextFieldDelegate {
         }
     }
     
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         
         return true

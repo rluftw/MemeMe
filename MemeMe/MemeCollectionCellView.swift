@@ -20,21 +20,21 @@ class MemeCollectionCellView: UICollectionViewCell {
         
     }
     
-    func setUpMemeLabels(topString: String, bottomString: String) {
+    func setUpMemeLabels(_ topString: String, bottomString: String) {
         setStringValueForMemeLabels(topString, label: topLabel)
         setStringValueForMemeLabels(bottomString, label: bottomLabel)
     }
     
-    func setStringValueForMemeLabels(string: String, label: UILabel) {
+    func setStringValueForMemeLabels(_ string: String, label: UILabel) {
         let memeTextAttributes = [
-            NSStrokeColorAttributeName: UIColor.blackColor(),
-            NSForegroundColorAttributeName: UIColor.whiteColor(),
+            NSStrokeColorAttributeName: UIColor.black,
+            NSForegroundColorAttributeName: UIColor.white,
             NSFontAttributeName: UIFont(name: "HelveticaNeue-CondensedBlack", size: 17)!,
             NSStrokeWidthAttributeName: -3.0
-        ]
+        ] as [String : Any]
         
         if string != "" {
-            label.textAlignment = .Center
+            label.textAlignment = .center
             label.attributedText = NSAttributedString(string: string , attributes: memeTextAttributes)
         }
     }

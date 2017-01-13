@@ -15,17 +15,17 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
-    var blockOperations: [NSBlockOperation]!
+    var blockOperations: [BlockOperation]!
     
     // Lazy fetchedResultsController
     // Stores data
     // Notifies controller when there's changes
     
-    lazy var fetchedResultsController: NSFetchedResultsController = {
-        let request = NSFetchRequest(entityName: "Meme")
+    lazy var fetchedResultsController: NSFetchedResultsController = { () -> NSFetchedResultsController<NSFetchRequestResult> in 
+        let request = Meme.fetchRequest()
         request.sortDescriptors = []
         
-        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: CoreDataStackManager.sharedInstance().managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
     }()
     
     var sharedContext: NSManagedObjectContext!
@@ -49,11 +49,11 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         } catch {}
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Tab bar hidden when previewing image
-        tabBarController?.tabBar.hidden = false
+        tabBarController?.tabBar.isHidden = false
         
         // Refresh collection view
         collectionView?.reloadData()
@@ -62,29 +62,29 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     // MARK: Laying out the collection cells
     
-    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
         // Depending on the side of the width, the cell dimensions will change
         let dimension = view.frame.size.width <= view.frame.size.height ? (view.frame.size.width-(2*space))/3.0: (view.frame.size.width-(5*space))/6.0
         
-        return CGSizeMake(dimension, dimension)
+        return CGSize(width: dimension, height: dimension)
     }
     
-    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         // This triggers a layout update
         flowLayout?.invalidateLayout()
     }
     
     // MARK: UICollectionViewDataSource methods
     
-    override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = fetchedResultsController.sections![section]
         return sectionInfo.numberOfObjects
     }
     
-    override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! MemeCollectionCellView
-        let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! MemeCollectionCellView
+        let meme = fetchedResultsController.object(at: indexPath) as! Meme
         let topText = meme.topText != nil ? meme.topText!: ""
         let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
         
@@ -97,15 +97,15 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     // MARK: Navigation methods
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowMemeDetailCollection" {
-            let detailVC = segue.destinationViewController as! MemeDetailViewController
+            let detailVC = segue.destination as! MemeDetailViewController
             let sender = sender as! MemeCollectionCellView
             
-            let indexPath = collectionView!.indexPathForCell(sender)!
-            detailVC.meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+            let indexPath = collectionView!.indexPath(for: sender)!
+            detailVC.meme = fetchedResultsController.object(at: indexPath) as! Meme
         } else if segue.identifier == "ShowMemeEditor" {
-            let editorVC = (segue.destinationViewController as! UINavigationController).topViewController as! MemeEditorViewController
+            let editorVC = (segue.destination as! UINavigationController).topViewController as! MemeEditorViewController
             
             editorVC.delegate = self
         }
@@ -113,13 +113,13 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     // MARK: - MemeEditorDelegate methods
     
-    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
+    func memeDidGetCreated(_ topText: String?, bottomText: String?, originalImage: Data, memeImage: Data) {
         
         let dictionary: [String: AnyObject] = [
-            Meme.Keys.TopText: topText ?? "",
-            Meme.Keys.BottomText: bottomText ?? "",
-            Meme.Keys.OriginalImage: originalImage,
-            Meme.Keys.MemeImage: memeImage
+            Meme.Keys.TopText: topText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.BottomText: bottomText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.OriginalImage: originalImage as AnyObject,
+            Meme.Keys.MemeImage: memeImage as AnyObject
         ]
         
         let _ = Meme(dictionary: dictionary, context: sharedContext)
@@ -130,23 +130,23 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     // MARK: - NSFetchedResultsControllerDelegate methods
     
-    func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        blockOperations = [NSBlockOperation]()
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        blockOperations = [BlockOperation]()
     }
     
-    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
-        case .Delete: blockOperations.append(NSBlockOperation(block: { () -> Void in
-            (self.collectionView?.deleteItemsAtIndexPaths([indexPath!]))!
+        case .delete: blockOperations.append(BlockOperation(block: { () -> Void in
+            (self.collectionView?.deleteItems(at: [indexPath!]))!
         }))
-        case .Insert: blockOperations.append(NSBlockOperation(block: { () -> Void in
-            self.collectionView?.insertItemsAtIndexPaths([newIndexPath!])
+        case .insert: blockOperations.append(BlockOperation(block: { () -> Void in
+            self.collectionView?.insertItems(at: [newIndexPath!])
         }))
         default: break
         }
     }
     
-    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         collectionView?.performBatchUpdates({ () -> Void in
             for operation in self.blockOperations {
                 operation.start()

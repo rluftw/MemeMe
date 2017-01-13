@@ -15,11 +15,12 @@ class MemeTableViewController: UITableViewController, NSFetchedResultsController
     // var memes: [Meme]!
     
     var sharedContext: NSManagedObjectContext!
-    
-    lazy var fetchedResultsController: NSFetchedResultsController = {
-        let request = NSFetchRequest(entityName: "Meme")
+
+    lazy var fetchedResultsController: NSFetchedResultsController = { () -> NSFetchedResultsController<NSFetchRequestResult> in
+        let request = Meme.fetchRequest()
         request.sortDescriptors = []
-        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        
+        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: CoreDataStackManager.sharedInstance().managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
     }()
     
     // MARK: - Viewcontroller Lifecycle
@@ -37,24 +38,24 @@ class MemeTableViewController: UITableViewController, NSFetchedResultsController
         } catch {}
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        tabBarController?.tabBar.hidden = false
+        tabBarController?.tabBar.isHidden = false
     }
 
     // MARK: - Table view data source
 
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let memes = fetchedResultsController.sections![section]
     
         return memes.numberOfObjects
     }
 
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("CustomMemeCell", forIndexPath: indexPath) as! MemeTableViewCell
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CustomMemeCell", for: indexPath) as! MemeTableViewCell
         
-        let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+        let meme = fetchedResultsController.object(at: indexPath) as! Meme
         
         let topText = meme.topText != nil ? meme.topText!: ""
         let bottomText = meme.bottomText != nil ? meme.bottomText!: ""
@@ -66,36 +67,36 @@ class MemeTableViewController: UITableViewController, NSFetchedResultsController
         return cell
     }
     
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
             
             // Fetch the data at that indexPath
-            let meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+            let meme = fetchedResultsController.object(at: indexPath) as! Meme
             
             // Remove from core data
-            sharedContext.deleteObject(meme)
+            sharedContext.delete(meme)
             
             // Save the commit
             CoreDataStackManager.sharedInstance().saveContext()
         }
     }
     
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
 
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowMemeDetailFromTable" {
-            let detailVC = segue.destinationViewController as! MemeDetailViewController
+            let detailVC = segue.destination as! MemeDetailViewController
             let sender = sender as! MemeTableViewCell
             
-            let indexPath = tableView!.indexPathForCell(sender)!
-            detailVC.meme = fetchedResultsController.objectAtIndexPath(indexPath) as! Meme
+            let indexPath = tableView!.indexPath(for: sender)!
+            detailVC.meme = fetchedResultsController.object(at: indexPath) as! Meme
         } else if segue.identifier == "ShowMemeEditor" {
-            let editorVC = (segue.destinationViewController as! UINavigationController).topViewController as! MemeEditorViewController
+            let editorVC = (segue.destination as! UINavigationController).topViewController as! MemeEditorViewController
             
             editorVC.delegate = self
         }
@@ -103,32 +104,32 @@ class MemeTableViewController: UITableViewController, NSFetchedResultsController
     
     // MARK: - FetchedResultsControllerDelegate methods
     
-    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         tableView.beginUpdates()
     }
     
-    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
-        case .Delete: tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
-        case .Insert: tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
+        case .delete: tableView.deleteRows(at: [indexPath!], with: .fade)
+        case .insert: tableView.insertRows(at: [newIndexPath!], with: .fade)
         default: break
         }
     }
     
-    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         tableView.endUpdates()
     }
     
     // MARK: - MemeEditorDelegate
     
     
-    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
+    func memeDidGetCreated(_ topText: String?, bottomText: String?, originalImage: Data, memeImage: Data) {
         
         let dictionary: [String: AnyObject] = [
-            Meme.Keys.TopText: topText ?? "",
-            Meme.Keys.BottomText: bottomText ?? "",
-            Meme.Keys.OriginalImage: originalImage,
-            Meme.Keys.MemeImage: memeImage
+            Meme.Keys.TopText: topText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.BottomText: bottomText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.OriginalImage: originalImage as AnyObject,
+            Meme.Keys.MemeImage: memeImage as AnyObject
         ]
         
         let _ = Meme(dictionary: dictionary, context: sharedContext)

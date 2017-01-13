@@ -25,23 +25,23 @@ class MemeDetailViewController: UIViewController, MemeEditorDelegate {
         super.viewDidLoad()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        tabBarController?.tabBar.hidden = true
-        imageView.image = UIImage(data: meme.memeImage)
+        tabBarController?.tabBar.isHidden = true
+        imageView.image = UIImage(data: meme.memeImage as Data)
     }
 
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        tabBarController?.tabBar.hidden = false
+        tabBarController?.tabBar.isHidden = false
     }
     
     // MARK: Navigation
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "EditMeme" {
-            let navController = segue.destinationViewController as! UINavigationController
+            let navController = segue.destination as! UINavigationController
             let memeEditor = navController.viewControllers.first as! MemeEditorViewController
             memeEditor.delegate = self
             
@@ -49,13 +49,13 @@ class MemeDetailViewController: UIViewController, MemeEditorDelegate {
         }
     }
     
-    func memeDidGetCreated(topText: String?, bottomText: String?, originalImage: NSData, memeImage: NSData) {
+    func memeDidGetCreated(_ topText: String?, bottomText: String?, originalImage: Data, memeImage: Data) {
         
         let dictionary: [String: AnyObject] = [
-            Meme.Keys.TopText: topText ?? "",
-            Meme.Keys.BottomText: bottomText ?? "",
-            Meme.Keys.OriginalImage: originalImage,
-            Meme.Keys.MemeImage: memeImage
+            Meme.Keys.TopText: topText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.BottomText: bottomText as AnyObject? ?? "" as AnyObject,
+            Meme.Keys.OriginalImage: originalImage as AnyObject,
+            Meme.Keys.MemeImage: memeImage as AnyObject
         ]
         
         let _ = Meme(dictionary: dictionary, context: sharedContext)
